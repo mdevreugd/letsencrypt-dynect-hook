@@ -17,6 +17,8 @@ from dyn.tm.zones import Zone
 from dyn.tm.zones import Node
 from dyn.tm.records import ARecord
 
+from tld import get_tld
+
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
@@ -43,8 +45,9 @@ def _has_dns_propagated(name, token):
 # https://dyn.readthedocs.org/en/latest/tm/zones.html
 def create_txt_record(args):
     domain, token = args[0], args[2]
-    zone_name = '.'.join(domain.split('.')[-2:])
-    node_name = "{0}.{1}".format('_acme-challenge', '.'.join(domain.split('.')[:-2]))
+    zone_name = get_tld('http://' + domain)
+    zone_parts = len(zone_name.split('.'))
+    node_name = '.'.join(['_acme-challenge'] + domain.split('.')[:-zone_parts])
     fqdn = "{0}.{1}".format(node_name, zone_name)
 
     zone = Zone(zone_name)
@@ -75,8 +78,9 @@ def delete_txt_record(args):
         logger.info(" + http_request() error in letsencrypt.sh?")
         return
 
-    zone_name = '.'.join(domain.split('.')[-2:])
-    node_name = "{0}.{1}".format('_acme-challenge', '.'.join(domain.split('.')[:-2]))
+    zone_name = get_tld('http://' + domain)
+    zone_parts = len(zone_name.split('.'))
+    node_name = '.'.join(['_acme-challenge'] + domain.split('.')[:-zone_parts])
     fqdn = "{0}.{1}".format(node_name, zone_name)
 
     zone = Zone(zone_name)
